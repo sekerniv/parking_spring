@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title layout:fragment="title">Thank You</title>
+</head>
+<body>
+<div layout:fragment="content" class="container py-5 text-center">
+    <h1 class="display-4 text-success mb-4">Thanks for your purchase!</h1>
+    <a th:href="@{/}" class="btn btn-primary btn-lg">Go to Homepage</a>
+</div>
+</body>
+</html>

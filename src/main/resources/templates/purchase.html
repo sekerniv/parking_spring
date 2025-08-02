@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title layout:fragment="title">Purchase a Book</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1>Purchase a Book</h1>
+
+    <div th:if="${book != null}">
+        <h2 th:text="${book.title}">Book Title</h2>
+        <h3 th:text="${book.price} + ' nis'">Price</h3>
+
+        <form th:action="@{'/purchase/' + ${book.id}}" method="post" onsubmit="return validation()">
+            <input type="text" id="creditcard" name="CreditCard" placeholder="Enter your credit card" /><br />
+            <input type="text" id="cvv" name="CVV" placeholder="Enter your CVV" /><br />
+            <input id="cardDate" type="month" name="CardDate" placeholder="Choose month and year" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
+
+    <p th:if="${book == null}">Book not found.</p>
+</div>
+
+<script>
+    function validation() {
+        var cardNumber = document.getElementById("creditcard").value;
+        var cvvNumber = document.getElementById("cvv").value;
+        var date = document.getElementById("cardDate").value;
+
+        if (cardNumber.length != 16 || cvvNumber.length != 3 || date === "") {
+            alert("Check your details");
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>
