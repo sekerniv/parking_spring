@@ -3,13 +3,17 @@ package com.example;
 
 import com.example.model.LotResult;
 import com.example.model.ParkingLot;
+import com.example.model.User;
 import com.example.service.DistanceService;
 import com.example.service.FirestoreService;
 import com.example.service.PricingService;
+import com.example.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import jakarta.servlet.http.HttpSession;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -17,23 +21,58 @@ import java.util.Comparator;
 import java.util.List;
 
 @Controller
-@RequiredArgsConstructor
 public class HomeController {
 
   private final FirestoreService firestoreService;
   private final DistanceService distanceService;
   private final PricingService pricingService;
 
+  public HomeController(FirestoreService firestoreService, DistanceService distanceService, 
+                       PricingService pricingService) {
+    this.firestoreService = firestoreService;
+    this.distanceService = distanceService;
+    this.pricingService = pricingService;
+  }
+
   // Default origin for first load (Tel Aviv)
   private static final double DEFAULT_LAT = 32.0853;
   private static final double DEFAULT_LNG = 34.7818;
 
-  @GetMapping("/")
-  public String home(Model model) throws Exception {
-    boolean isResident = false; // later: pull from user profile
+    @GetMapping("/")
+    public String home(Model model, HttpSession session,
+                      @RequestParam(value = "resident", required = false) String residentParam,
+                      @RequestParam(value = "lat", required = false) Double latParam,
+                      @RequestParam(value = "lng", required = false) Double lngParam) throws Exception {
+      // Get user from session, or null if not logged in
+      User user = (User) session.getAttribute("user");
+    
+          final boolean isResident;
+      double originLat = DEFAULT_LAT;
+      double originLng = DEFAULT_LNG;
+      String homeLocationLabel = "Tel Aviv";
+      
+      if (user != null) {
+        isResident = user.isResident();
+        if (user.getHomeLat() != null && user.getHomeLng() != null) {
+          originLat = user.getHomeLat();
+          originLng = user.getHomeLng();
+          homeLocationLabel = user.getHomeAddress() != null && !user.getHomeAddress().isEmpty() 
+              ? user.getHomeAddress() : "Your Home";
+        }
+      } else {
+        // Guest user - use request parameters or default settings
+        isResident = "true".equals(residentParam);
+        
+        // Use provided coordinates or default to Tel Aviv
+        if (latParam != null && lngParam != null) {
+          originLat = latParam;
+          originLng = lngParam;
+          homeLocationLabel = "Current Location";
+        }
+      }
+    
     var lots = firestoreService.fetchLots();
-
-    var distanceMap = distanceService.drivingDistances(DEFAULT_LAT, DEFAULT_LNG, lots);
+    var distanceMap = distanceService.drivingDistances(originLat, originLng, lots);
     Instant now = Instant.now();
 
     List<LotResult> results = new ArrayList<>();
@@ -80,8 +119,9 @@ public class HomeController {
 
     model.addAttribute("results", results);
     model.addAttribute("activeTab", "home");
-    // Optional: show “homeLocation” badge on the button we added earlier
-    model.addAttribute("homeLocation", java.util.Map.of("label", "Tel Aviv"));
+    model.addAttribute("homeLocation", java.util.Map.of("label", homeLocationLabel));
+    model.addAttribute("user", user); // This can be null for guest users
+    model.addAttribute("isLoggedIn", user != null);
     return "home";
   }
 

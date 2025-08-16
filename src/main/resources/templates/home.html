@@ -16,6 +16,20 @@
         <i class="bi bi-p-circle-fill"></i> Find Nearby Parking
       </h1>
       <p class="text-muted mb-0">Compare prices for preset durations (12h, 24h, 72h) with all fees included.</p>
+      
+      <!-- Guest user notice -->
+      <div th:if="${!isLoggedIn}" class="alert alert-info mt-3" role="alert">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Guest Mode:</strong> You can search for parking, but 
+            <a th:href="@{/login}" class="alert-link">log in</a> to save your home address and resident status.
+          </div>
+          <a th:href="@{/login}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Login
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- Controls -->
@@ -45,9 +59,14 @@
 
           <div class="col-12 col-md-4">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="residentCheckbox">
+              <input class="form-check-input" type="checkbox" id="residentCheckbox" 
+                     th:checked="${isLoggedIn and user.isResident()}">
               <label class="form-check-label" for="residentCheckbox">I am a resident</label>
             </div>
+            <small class="text-muted" th:if="${!isLoggedIn}">
+              This setting will be reset when you refresh the page. 
+              <a th:href="@{/login}" class="text-decoration-none">Log in</a> to save your preferences.
+            </small>
           </div>
         </div>
 
@@ -66,17 +85,21 @@
             <!-- If home location is not set, disable and hint -->
             <button id="searchNearHomeBtn"
                     class="btn btn-primary btn-lg"
-                    th:classappend="${homeLocation == null} ? ' disabled' : ''"
-                    th:attr="aria-disabled=${homeLocation == null}">
+                    th:classappend="${!isLoggedIn or homeLocation == null} ? ' disabled' : ''"
+                    th:attr="aria-disabled=${!isLoggedIn or homeLocation == null}">
               <i class="bi bi-house-door-fill me-1"></i>
               Search Near My Home
             </button>
             <small class="text-muted mt-2"
-                   th:if="${homeLocation == null}">
+                   th:if="${!isLoggedIn}">
+              <a th:href="@{/login}" class="text-decoration-none">Log in</a> and set your home address to enable this.
+            </small>
+            <small class="text-muted mt-2"
+                   th:if="${isLoggedIn and homeLocation == null}">
               Set your home address in <a th:href="@{/settings}">Settings</a> to enable this.
             </small>
             <small class="text-muted mt-2"
-                   th:if="${homeLocation != null}"
+                   th:if="${isLoggedIn and homeLocation != null}"
                    th:text="'Home: ' + ${homeLocation.label}"></small>
           </div>
         </div>

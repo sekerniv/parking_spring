@@ -14,13 +14,16 @@ import org.springframework.http.HttpStatusCode;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 public class DistanceService {
 
   private static final int MAX_DEST_PER_REQUEST = 25; // Google Distance Matrix per-request dest limit
   private final WebClient webClient;
 
-  @Value("${GOOGLE_API_KEY}")
+  public DistanceService(WebClient webClient) {
+    this.webClient = webClient;
+  }
+
+  @Value("${GOOGLE_API_KEY:}")
   private String googleApiKey;
 
   /**
