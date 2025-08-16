@@ -34,3 +34,7 @@ build/
 !.vscode/launch.json
 !.vscode/tasks.json
 !.vscode/settings.json
+
+# ignore env and credential files
+.env
+**/serviceAccountKey.json

@@ -1,51 +1,145 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="~{layout}">
+      layout:decorate="~{layout}">
 
 <head>
-    <title layout:fragment="title">Home</title>
+  <title layout:fragment="title">Home</title>
 </head>
 
 <body>
-    <section layout:fragment="content">
-        <div class="container py-5">
-            <h1 class="text-center text-primary" id="message">
-                <i class="bi bi-p-circle-fill"></i> Find Nearby Parking
-            </h1>
+<section layout:fragment="content">
+  <div class="container py-5">
 
-            <div class="row mb-4">
-                <div class="col-md-8 mx-auto">
-                    <div class="input-group mb-3">
-                        <input id="textField" type="text" class="form-control" placeholder="Type your name">
-                        <button id="helloBtn" class="btn btn-outline-primary">
-                            <i class="bi bi-hand-thumbs-up"></i> Say Hello
-                        </button>
-                    </div>
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h1 class="text-primary" id="message">
+        <i class="bi bi-p-circle-fill"></i> Find Nearby Parking
+      </h1>
+      <p class="text-muted mb-0">Compare prices for preset durations (12h, 24h, 72h) with all fees included.</p>
+    </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="residentCheckbox">
-                        <label class="form-check-label" for="residentCheckbox">I am a resident</label>
-                    </div>
+    <!-- Controls -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-10 mx-auto">
 
-                    <div class="d-grid gap-2">
-                        <button id="searchBtn" class="btn btn-success">
-                            <i class="bi bi-geo-alt-fill"></i> Search Parking Lots
-                        </button>
+        <!-- Filters row -->
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-sm-6 col-md-4">
+            <label for="durationSelect" class="form-label mb-0">Duration</label>
+            <select id="durationSelect" class="form-select">
+              <option value="12">12 hours</option>
+              <option value="24" selected>24 hours</option>
+              <option value="72">72 hours</option>
+            </select>
+          </div>
 
-                        <button id="incrementBtn" class="btn btn-secondary">
-                            Visits: <span th:text="${counter} ?: 0">0</span>
-                        </button>
-                    </div>
-                </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <label for="radiusSelect" class="form-label mb-0">Search Radius</label>
+            <select id="radiusSelect" class="form-select">
+              <option value="500">500 m</option>
+              <option value="1000" selected>1 km</option>
+              <option value="2000">2 km</option>
+              <option value="5000">5 km</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="residentCheckbox">
+              <label class="form-check-label" for="residentCheckbox">I am a resident</label>
             </div>
-
-            <div class="row">
-                <div class="col-md-10 mx-auto">
-                    <ul id="parkingLots" class="lot-list list-group"></ul>
-                </div>
-            </div>
+          </div>
         </div>
-    </section>
-</body>
 
+        <hr class="my-4">
+
+        <!-- Primary actions -->
+        <div class="row g-3">
+          <div class="col-12 col-md-6 d-grid">
+            <button id="searchNearMeBtn" class="btn btn-success btn-lg">
+              <i class="bi bi-geo-alt-fill me-1"></i> Search Near Me
+            </button>
+            <small class="text-muted mt-2">Uses your current location (browser permission required).</small>
+          </div>
+
+          <div class="col-12 col-md-6 d-grid">
+            <!-- If home location is not set, disable and hint -->
+            <button id="searchNearHomeBtn"
+                    class="btn btn-primary btn-lg"
+                    th:classappend="${homeLocation == null} ? ' disabled' : ''"
+                    th:attr="aria-disabled=${homeLocation == null}">
+              <i class="bi bi-house-door-fill me-1"></i>
+              Search Near My Home
+            </button>
+            <small class="text-muted mt-2"
+                   th:if="${homeLocation == null}">
+              Set your home address in <a th:href="@{/settings}">Settings</a> to enable this.
+            </small>
+            <small class="text-muted mt-2"
+                   th:if="${homeLocation != null}"
+                   th:text="'Home: ' + ${homeLocation.label}"></small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row">
+      <div class="col-lg-10 mx-auto">
+        <!-- Loading state -->
+        <div id="resultsLoading" class="d-none text-center text-muted py-4">
+          <div class="spinner-border" role="status" aria-hidden="true"></div>
+          <div class="mt-2">Searching parking lots…</div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="resultsEmpty" class="alert alert-light border d-none" role="alert">
+          <i class="bi bi-info-circle me-1"></i>
+          No results yet — choose an option above to search.
+        </div>
+
+        <!-- Results list -->
+        <ul id="parkingLots" class="lot-list list-group">
+            <li th:if="${#lists.isEmpty(results)}" class="list-group-item py-4 text-center text-muted">
+              <i class="bi bi-info-circle me-1"></i> No results yet.
+            </li>
+          
+            <li th:each="lot : ${results}" class="list-group-item py-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="mb-1" th:text="${lot.name}">Lot Name</h5>
+                  <div class="small text-muted">
+                    <span th:text="${lot.distanceText}">1.2 km</span>
+                    <span class="mx-2">•</span>
+                    <span>Open 24/7</span> <!-- replace if you have real hours -->
+                  </div>
+                  <div class="small text-muted" th:text="'(' + ${lot.lat} + ', ' + ${lot.lng} + ')'">(lat,lng)</div>
+                </div>
+          
+                <div class="text-end">
+                  <div class="fw-bold fs-5">
+                    ₪ <span th:text="${#lists.isEmpty(lot.prices) ? 0 : lot.prices.get(1).amount}">48</span>
+                  </div>
+                  <div class="small text-muted">for 24h</div>
+                  <a class="btn btn-outline-secondary btn-sm mt-2" th:href="@{'/lot/' + ${lot.id}}">
+                    Details
+                  </a>
+                </div>
+              </div>
+              <div class="mt-2 d-flex gap-2">
+                <span class="badge bg-secondary"
+                      th:each="p : ${lot.prices}"
+                      th:text="${p.label}">12h: ₪ 28</span>
+              </div>
+            </li>
+          </ul>
+          
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+</body>
 </html>

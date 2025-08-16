@@ -1,15 +1,18 @@
 {
-  "type": "java",
-  "name": "Run Spring Boot + Browser",
-  "request": "launch",
-  "mainClass": "com.example.DemoApplication",
-  "projectName": "demo",
-  "args": "--server.port=8080",
-  "env": { "JAVA_TOOL_OPTIONS": "" },
-  "console": "internalConsole",
-  "serverReadyAction": {
-    "action": "openExternally",
-    "pattern": "Tomcat started on port(?:\\(s\\))?:?\\s*(\\d+)",
-    "uriFormat": "http://localhost:%s"
-  }
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Spring Boot + Browser",
+      "request": "launch",
+      "mainClass": "com.example.DemoApplication",
+      "envFile": "${workspaceFolder}/.env",
+      "console": "internalConsole",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "Tomcat started on port(?:\\(s\\))?:?\\s*(\\d+)",
+        "uriFormat": "http://localhost:%s"
+      }
+    }
+  ]
 }
