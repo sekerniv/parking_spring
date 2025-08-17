@@ -52,7 +52,9 @@ public class HomeController {
       String homeLocationLabel = "Tel Aviv";
       
       if (user != null) {
-        isResident = user.isResident();
+        
+        isResident = residentParam == null? user.isResident() : residentParam.equals("true");
+        
         if (user.getHomeLat() != null && user.getHomeLng() != null) {
           originLat = user.getHomeLat();
           originLng = user.getHomeLng();
@@ -97,10 +99,12 @@ public class HomeController {
       results.add(LotResult.builder()
           .id(lot.getId())
           .name(lot.getName())
+          .address(lot.getAddress()) // Add address instead of lat/lng
           .lat(lot.getLat())
           .lng(lot.getLng())
           .distanceText(distanceText)
           .prices(prices)
+          .residentDiscount(lot.getResidentDiscount())
           .build());
     }
 

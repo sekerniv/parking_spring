@@ -1,0 +1,16 @@
+{
+  "name": "parking_spring",
+  "version": "1.0.0",
+  "description": "This project demonstrates: - **Session management** with login/logout   - **Form handling & validation** (e.g., book purchase, login form)   - **Static vs. template resources** (e.g., `/privacy` as static, others as Thymeleaf templates)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "geofire-common": "^6.0.0"
+  }
+}

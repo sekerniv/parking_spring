@@ -88,32 +88,51 @@ public class PricingService {
 
   /**
    * Previous-or-same occurrence of (day,hour) relative to reference (local time).
-   * day: 0=Sun … 6=Sat (JS-style).
+   * day: Firestore format (1=Sun, 2=Mon, ..., 7=Sat)
    */
   private ZonedDateTime occurrenceOnOrBefore(Integer day, Integer hour, Instant reference) {
     ZonedDateTime ref = reference.atZone(ZONE);
-    int targetDay  = (day == null) ? (ref.getDayOfWeek().getValue() % 7) : Math.floorMod(day, 7);
+    int targetDay  = (day == null) ? ref.getDayOfWeek().getValue() : convertFirestoreDayToJava(day);
     int targetHour = (hour == null) ? ref.getHour() : clampHour(hour);
 
     ZonedDateTime date = ref.withHour(targetHour).withMinute(0).withSecond(0).withNano(0);
-    int currentDay = date.getDayOfWeek().getValue() % 7; // Mon=1..Sun=7 → 0..6 (Sun=0)
+    int currentDay = date.getDayOfWeek().getValue();
     int dayBack = (currentDay - targetDay + 7) % 7;
     return date.minusDays(dayBack);
   }
 
   /**
    * Next occurrence of (day,hour) strictly at/after the given reference (built from that reference's week).
-   * day: 0=Sun … 6=Sat (JS-style).
+   * day: Firestore format (1=Sun, 2=Mon, ..., 7=Sat)
    */
   private ZonedDateTime nextOccurrence(Integer day, Integer hour, Instant reference) {
     ZonedDateTime ref = reference.atZone(ZONE);
-    int targetDay  = (day == null) ? (ref.getDayOfWeek().getValue() % 7) : Math.floorMod(day, 7);
+    int targetDay  = (day == null) ? ref.getDayOfWeek().getValue() : convertFirestoreDayToJava(day);
     int targetHour = (hour == null) ? ref.getHour() : clampHour(hour);
 
     ZonedDateTime date = ref.withHour(targetHour).withMinute(0).withSecond(0).withNano(0);
-    int currentDay = date.getDayOfWeek().getValue() % 7;
+    int currentDay = date.getDayOfWeek().getValue();
     int dayFwd = (targetDay - currentDay + 7) % 7;
     return date.plusDays(dayFwd);
+  }
+
+  /**
+   * Convert Firestore day format (1=Sun, 2=Mon, ..., 7=Sat) to Java DayOfWeek format (1=Mon, 2=Tue, ..., 7=Sun)
+   */
+  private int convertFirestoreDayToJava(Integer firestoreDay) {
+    if (firestoreDay == null) return 1; // Default to Monday
+    // Firestore: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
+    // Java:      1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun
+    switch (firestoreDay) {
+      case 1: return 7; // Sun -> 7
+      case 2: return 1; // Mon -> 1
+      case 3: return 2; // Tue -> 2
+      case 4: return 3; // Wed -> 3
+      case 5: return 4; // Thu -> 4
+      case 6: return 5; // Fri -> 5
+      case 7: return 6; // Sat -> 6
+      default: return 1; // Default to Monday
+    }
   }
 
   private int clampHour(int h) {

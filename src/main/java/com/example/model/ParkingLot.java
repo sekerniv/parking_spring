@@ -6,6 +6,7 @@ import java.util.List;
 public class ParkingLot {
   private String id;
   private String name;
+  private String address; // Added address field
   private Double lat;
   private Double lng;
 
@@ -18,9 +19,10 @@ public class ParkingLot {
   public ParkingLot() {}
 
   // All-args constructor
-  public ParkingLot(String id, String name, Double lat, Double lng, Hourly hourly, FlatRate flatRate, Double residentDiscount) {
+  public ParkingLot(String id, String name, String address, Double lat, Double lng, Hourly hourly, FlatRate flatRate, Double residentDiscount) {
     this.id = id;
     this.name = name;
+    this.address = address;
     this.lat = lat;
     this.lng = lng;
     this.hourly = hourly;
@@ -34,6 +36,9 @@ public class ParkingLot {
 
   public String getName() { return name; }
   public void setName(String name) { this.name = name; }
+
+  public String getAddress() { return address; }
+  public void setAddress(String address) { this.address = address; }
 
   public Double getLat() { return lat; }
   public void setLat(Double lat) { this.lat = lat; }

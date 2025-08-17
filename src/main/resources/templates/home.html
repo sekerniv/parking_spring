@@ -15,7 +15,6 @@
       <h1 class="text-primary" id="message">
         <i class="bi bi-p-circle-fill"></i> Find Nearby Parking
       </h1>
-      <p class="text-muted mb-0">Compare prices for preset durations (12h, 24h, 72h) with all fees included.</p>
       
       <!-- Guest user notice -->
       <div th:if="${!isLoggedIn}" class="alert alert-info mt-3" role="alert">
@@ -39,15 +38,6 @@
         <!-- Filters row -->
         <div class="row g-3 align-items-end">
           <div class="col-12 col-sm-6 col-md-4">
-            <label for="durationSelect" class="form-label mb-0">Duration</label>
-            <select id="durationSelect" class="form-select">
-              <option value="12">12 hours</option>
-              <option value="24" selected>24 hours</option>
-              <option value="72">72 hours</option>
-            </select>
-          </div>
-
-          <div class="col-12 col-sm-6 col-md-4">
             <label for="radiusSelect" class="form-label mb-0">Search Radius</label>
             <select id="radiusSelect" class="form-select">
               <option value="500">500 m</option>
@@ -57,7 +47,7 @@
             </select>
           </div>
 
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-sm-6 col-md-4">
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" id="residentCheckbox" 
                      th:checked="${isLoggedIn and user.isResident()}">
@@ -68,39 +58,39 @@
               <a th:href="@{/login}" class="text-decoration-none">Log in</a> to save your preferences.
             </small>
           </div>
+
+          <div class="col-12 col-md-4">
+            <div class="form-check form-switch" th:if="${isLoggedIn and homeLocation != null}">
+              <input class="form-check-input" type="checkbox" id="searchLocationToggle">
+              <label class="form-check-label" for="searchLocationToggle">
+                <i class="bi bi-house-door-fill me-1"></i> Search near my home
+              </label>
+            </div>
+            <div class="form-check form-switch" th:if="${!isLoggedIn or homeLocation == null}">
+              <input class="form-check-input" type="checkbox" id="searchLocationToggle" checked disabled>
+              <label class="form-check-label" for="searchLocationToggle">
+                <i class="bi bi-geo-alt-fill me-1"></i> Search near me
+              </label>
+            </div>
+          </div>
         </div>
 
         <hr class="my-4">
 
         <!-- Primary actions -->
         <div class="row g-3">
-          <div class="col-12 col-md-6 d-grid">
-            <button id="searchNearMeBtn" class="btn btn-success btn-lg">
-              <i class="bi bi-geo-alt-fill me-1"></i> Search Near Me
+          <div class="col-12 d-grid">
+            <button id="searchBtn" class="btn btn-primary btn-lg">
+              <i class="bi bi-search me-1"></i> Search Parking
             </button>
-            <small class="text-muted mt-2">Uses your current location (browser permission required).</small>
-          </div>
-
-          <div class="col-12 col-md-6 d-grid">
-            <!-- If home location is not set, disable and hint -->
-            <button id="searchNearHomeBtn"
-                    class="btn btn-primary btn-lg"
-                    th:classappend="${!isLoggedIn or homeLocation == null} ? ' disabled' : ''"
-                    th:attr="aria-disabled=${!isLoggedIn or homeLocation == null}">
-              <i class="bi bi-house-door-fill me-1"></i>
-              Search Near My Home
-            </button>
-            <small class="text-muted mt-2"
-                   th:if="${!isLoggedIn}">
-              <a th:href="@{/login}" class="text-decoration-none">Log in</a> and set your home address to enable this.
+            <small class="text-muted mt-2" id="searchHint">
+              <span th:if="${isLoggedIn and homeLocation != null}">
+                <i class="bi bi-geo-alt-fill me-1"></i> Uses your current location
+              </span>
+              <span th:if="${!isLoggedIn or homeLocation == null}">
+                <i class="bi bi-geo-alt-fill me-1"></i> Uses your current location (browser permission required)
+              </span>
             </small>
-            <small class="text-muted mt-2"
-                   th:if="${isLoggedIn and homeLocation == null}">
-              Set your home address in <a th:href="@{/settings}">Settings</a> to enable this.
-            </small>
-            <small class="text-muted mt-2"
-                   th:if="${isLoggedIn and homeLocation != null}"
-                   th:text="'Home: ' + ${homeLocation.label}"></small>
           </div>
         </div>
 
@@ -120,7 +110,7 @@
         <div id="resultsEmpty" class="alert alert-light border d-none" role="alert">
           <i class="bi bi-info-circle me-1"></i>
           No results yet — choose an option above to search.
-        </div>
+        </div>lat
 
         <!-- Results list -->
         <ul id="parkingLots" class="lot-list list-group">
@@ -135,25 +125,32 @@
                   <div class="small text-muted">
                     <span th:text="${lot.distanceText}">1.2 km</span>
                     <span class="mx-2">•</span>
-                    <span>Open 24/7</span> <!-- replace if you have real hours -->
+                    <span th:if="${lot.residentDiscount != null and lot.residentDiscount > 0}">
+                      <i class="bi bi-percent text-success"></i>
+                      <span class="text-success" th:text="${#numbers.formatDecimal(lot.residentDiscount * 100, 0, 0)} + '% resident discount'">25% resident discount</span>
+                    </span>
+                    <span th:if="${lot.residentDiscount == null or lot.residentDiscount == 0}">
+                      <i class="bi bi-clock"></i>
+                      <span>Open 24/7</span>
+                    </span>
                   </div>
-                  <div class="small text-muted" th:text="'(' + ${lot.lat} + ', ' + ${lot.lng} + ')'">(lat,lng)</div>
+                  <div class="small text-muted" th:text="${lot.address}">Address</div>
                 </div>
           
                 <div class="text-end">
-                  <div class="fw-bold fs-5">
-                    ₪ <span th:text="${#lists.isEmpty(lot.prices) ? 0 : lot.prices.get(1).amount}">48</span>
+                  <div class="d-flex flex-column align-items-end">
+                    <div class="mb-2">
+                      <a class="btn btn-outline-secondary btn-sm" th:href="@{'/lot/' + ${lot.id}}">
+                        Details
+                      </a>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                      <div class="fw-bold fs-6" th:each="p : ${lot.prices}">
+                        <span th:text="${p.label}" class="badge bg-primary fs-6 px-3 py-2">12h: ₪ 28</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="small text-muted">for 24h</div>
-                  <a class="btn btn-outline-secondary btn-sm mt-2" th:href="@{'/lot/' + ${lot.id}}">
-                    Details
-                  </a>
                 </div>
-              </div>
-              <div class="mt-2 d-flex gap-2">
-                <span class="badge bg-secondary"
-                      th:each="p : ${lot.prices}"
-                      th:text="${p.label}">12h: ₪ 28</span>
               </div>
             </li>
           </ul>
@@ -164,5 +161,11 @@
 
   </div>
 </section>
+
+<!-- Page-specific scripts -->
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/home.js}"></script>
+</th:block>
+
 </body>
 </html>

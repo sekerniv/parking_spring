@@ -5,22 +5,26 @@ import java.util.List;
 public class LotResult {
   private String id;
   private String name;
+  private String address; // Added address field
   private double lat;
   private double lng;
   private String distanceText; // "1.2 km" or "8 min"
   private List<PriceCell> prices; // 12h/24h/72h
+  private Double residentDiscount; // 0.0 to 1.0, null if no discount
 
   // Default constructor
   public LotResult() {}
 
   // All-args constructor
-  public LotResult(String id, String name, double lat, double lng, String distanceText, List<PriceCell> prices) {
+  public LotResult(String id, String name, String address, double lat, double lng, String distanceText, List<PriceCell> prices, Double residentDiscount) {
     this.id = id;
     this.name = name;
+    this.address = address;
     this.lat = lat;
     this.lng = lng;
     this.distanceText = distanceText;
     this.prices = prices;
+    this.residentDiscount = residentDiscount;
   }
 
   // Getters and Setters
@@ -29,6 +33,9 @@ public class LotResult {
 
   public String getName() { return name; }
   public void setName(String name) { this.name = name; }
+
+  public String getAddress() { return address; }
+  public void setAddress(String address) { this.address = address; }
 
   public double getLat() { return lat; }
   public void setLat(double lat) { this.lat = lat; }
@@ -42,6 +49,9 @@ public class LotResult {
   public List<PriceCell> getPrices() { return prices; }
   public void setPrices(List<PriceCell> prices) { this.prices = prices; }
 
+  public Double getResidentDiscount() { return residentDiscount; }
+  public void setResidentDiscount(Double residentDiscount) { this.residentDiscount = residentDiscount; }
+
   // Builder pattern
   public static LotResultBuilder builder() {
     return new LotResultBuilder();
@@ -50,20 +60,61 @@ public class LotResult {
   public static class LotResultBuilder {
     private String id;
     private String name;
+    private String address; // Added address field
     private double lat;
     private double lng;
     private String distanceText;
     private List<PriceCell> prices;
+    private Double residentDiscount;
 
-    public LotResultBuilder id(String id) { this.id = id; return this; }
-    public LotResultBuilder name(String name) { this.name = name; return this; }
-    public LotResultBuilder lat(double lat) { this.lat = lat; return this; }
-    public LotResultBuilder lng(double lng) { this.lng = lng; return this; }
-    public LotResultBuilder distanceText(String distanceText) { this.distanceText = distanceText; return this; }
-    public LotResultBuilder prices(List<PriceCell> prices) { this.prices = prices; return this; }
+    LotResultBuilder() {}
+
+    public LotResultBuilder id(String id) {
+      this.id = id;
+      return this;
+    }
+
+    public LotResultBuilder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public LotResultBuilder address(String address) { // Added address builder method
+      this.address = address;
+      return this;
+    }
+
+    public LotResultBuilder lat(double lat) {
+      this.lat = lat;
+      return this;
+    }
+
+    public LotResultBuilder lng(double lng) {
+      this.lng = lng;
+      return this;
+    }
+
+    public LotResultBuilder distanceText(String distanceText) {
+      this.distanceText = distanceText;
+      return this;
+    }
+
+    public LotResultBuilder prices(List<PriceCell> prices) {
+      this.prices = prices;
+      return this;
+    }
+
+    public LotResultBuilder residentDiscount(Double residentDiscount) {
+      this.residentDiscount = residentDiscount;
+      return this;
+    }
 
     public LotResult build() {
-      return new LotResult(id, name, lat, lng, distanceText, prices);
+      return new LotResult(id, name, address, lat, lng, distanceText, prices, residentDiscount);
+    }
+
+    public String toString() {
+      return "LotResult.LotResultBuilder(id=" + this.id + ", name=" + this.name + ", address=" + this.address + ", lat=" + this.lat + ", lng=" + this.lng + ", distanceText=" + this.distanceText + ", prices=" + this.prices + ", residentDiscount=" + this.residentDiscount + ")";
     }
   }
 

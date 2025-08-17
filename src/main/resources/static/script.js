@@ -1,7 +1,7 @@
-// Parking Finder JavaScript
+// Parking Finder JavaScript - General functionality
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle resident checkbox for guest users
+    // Handle resident checkbox for guest users (general functionality)
     const residentCheckbox = document.getElementById('residentCheckbox');
     if (residentCheckbox) {
         // Store the resident preference in localStorage for guest users
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Handle search buttons
+    // Handle search buttons (general functionality)
     const searchNearMeBtn = document.getElementById('searchNearMeBtn');
     const searchNearHomeBtn = document.getElementById('searchNearHomeBtn');
     

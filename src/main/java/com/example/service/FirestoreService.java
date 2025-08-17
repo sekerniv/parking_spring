@@ -27,6 +27,10 @@ public class FirestoreService {
       ParkingLot lot = new ParkingLot();
       lot.setId(doc.getId());
       lot.setName(String.valueOf(data.getOrDefault("name", "Unnamed lot")));
+      
+      // Add address field
+      String address = String.valueOf(data.getOrDefault("address", ""));
+      lot.setAddress(address);
 
       // ---- location: support {location:{lat,lng}} OR GeoPoint OR top-level lat/lng
       Double lat = null, lng = null;
