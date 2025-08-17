@@ -37,17 +37,7 @@
 
         <!-- Filters row -->
         <div class="row g-3 align-items-end">
-          <div class="col-12 col-sm-6 col-md-4">
-            <label for="radiusSelect" class="form-label mb-0">Search Radius</label>
-            <select id="radiusSelect" class="form-select">
-              <option value="500">500 m</option>
-              <option value="1000" selected>1 km</option>
-              <option value="2000">2 km</option>
-              <option value="5000">5 km</option>
-            </select>
-          </div>
-
-          <div class="col-12 col-sm-6 col-md-4">
+          <div class="col-12 col-sm-6">
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" id="residentCheckbox" 
                      th:checked="${isLoggedIn and user.isResident()}">
@@ -59,19 +49,28 @@
             </small>
           </div>
 
-          <div class="col-12 col-md-4">
-            <div class="form-check form-switch" th:if="${isLoggedIn and homeLocation != null}">
-              <input class="form-check-input" type="checkbox" id="searchLocationToggle">
-              <label class="form-check-label" for="searchLocationToggle">
-                <i class="bi bi-house-door-fill me-1"></i> Search near my home
+          <div class="col-12 col-sm-6">
+            <!-- Segmented control for location toggle -->
+            <div class="btn-group w-100" role="group" aria-label="Location search toggle">
+              <input type="radio" class="btn-check" name="locationToggle" id="currentLocation" 
+                     th:checked="${selectedLocation == 'current'}" autocomplete="off">
+              <label class="btn btn-outline-primary" for="currentLocation">
+                <i class="bi bi-geo-alt-fill me-1"></i> Current Location
+              </label>
+
+              <input type="radio" class="btn-check" name="locationToggle" id="homeAddress" 
+                     th:checked="${selectedLocation == 'home'}" autocomplete="off"
+                     th:disabled="${!isLoggedIn or homeLocation == null}">
+              <label class="btn btn-outline-primary" for="homeAddress" 
+                     th:classappend="${!isLoggedIn or homeLocation == null} ? 'disabled'">
+                <i class="bi bi-house-door-fill me-1"></i> Home Address
               </label>
             </div>
-            <div class="form-check form-switch" th:if="${!isLoggedIn or homeLocation == null}">
-              <input class="form-check-input" type="checkbox" id="searchLocationToggle" checked disabled>
-              <label class="form-check-label" for="searchLocationToggle">
-                <i class="bi bi-geo-alt-fill me-1"></i> Search near me
-              </label>
-            </div>
+            <small class="text-muted mt-1 d-block" th:if="${!isLoggedIn or homeLocation == null}">
+              <i class="bi bi-info-circle me-1"></i> 
+              <span th:if="${!isLoggedIn}">Log in to save your home address</span>
+              <span th:if="${isLoggedIn and homeLocation == null}">Set your home address in settings</span>
+            </small>
           </div>
         </div>
 
@@ -110,7 +109,7 @@
         <div id="resultsEmpty" class="alert alert-light border d-none" role="alert">
           <i class="bi bi-info-circle me-1"></i>
           No results yet — choose an option above to search.
-        </div>lat
+        </div>
 
         <!-- Results list -->
         <ul id="parkingLots" class="lot-list list-group">

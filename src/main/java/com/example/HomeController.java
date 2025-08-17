@@ -42,28 +42,47 @@ public class HomeController {
     public String home(Model model, HttpSession session,
                       @RequestParam(value = "resident", required = false) String residentParam,
                       @RequestParam(value = "lat", required = false) Double latParam,
-                      @RequestParam(value = "lng", required = false) Double lngParam) throws Exception {
+                      @RequestParam(value = "lng", required = false) Double lngParam,
+                      @RequestParam(value = "location", required = false) String locationParam) throws Exception {
       // Get user from session, or null if not logged in
       User user = (User) session.getAttribute("user");
     
-          final boolean isResident;
+      final boolean isResident;
       double originLat = DEFAULT_LAT;
       double originLng = DEFAULT_LNG;
       String homeLocationLabel = "Tel Aviv";
+      String selectedLocation = "current"; // Default to current location
       
       if (user != null) {
-        
         isResident = residentParam == null? user.isResident() : residentParam.equals("true");
         
-        if (user.getHomeLat() != null && user.getHomeLng() != null) {
+        // Determine location preference
+        if (locationParam != null) {
+          selectedLocation = locationParam;
+        } else if (user.getHomeLat() != null && user.getHomeLng() != null) {
+          // Default to home if user has home address set
+          selectedLocation = "home";
+        }
+        
+        // Set origin based on selected location
+        if ("home".equals(selectedLocation) && user.getHomeLat() != null && user.getHomeLng() != null) {
           originLat = user.getHomeLat();
           originLng = user.getHomeLng();
           homeLocationLabel = user.getHomeAddress() != null && !user.getHomeAddress().isEmpty() 
               ? user.getHomeAddress() : "Your Home";
+        } else {
+          // Use provided coordinates or default
+          if (latParam != null && lngParam != null) {
+            originLat = latParam;
+            originLng = lngParam;
+            homeLocationLabel = "Current Location";
+          }
+          selectedLocation = "current";
         }
       } else {
         // Guest user - use request parameters or default settings
         isResident = "true".equals(residentParam);
+        selectedLocation = locationParam != null ? locationParam : "current";
         
         // Use provided coordinates or default to Tel Aviv
         if (latParam != null && lngParam != null) {
@@ -99,7 +118,7 @@ public class HomeController {
       results.add(LotResult.builder()
           .id(lot.getId())
           .name(lot.getName())
-          .address(lot.getAddress()) // Add address instead of lat/lng
+          .address(lot.getAddress())
           .lat(lot.getLat())
           .lng(lot.getLng())
           .distanceText(distanceText)
@@ -124,8 +143,9 @@ public class HomeController {
     model.addAttribute("results", results);
     model.addAttribute("activeTab", "home");
     model.addAttribute("homeLocation", java.util.Map.of("label", homeLocationLabel));
-    model.addAttribute("user", user); // This can be null for guest users
+    model.addAttribute("user", user);
     model.addAttribute("isLoggedIn", user != null);
+    model.addAttribute("selectedLocation", selectedLocation); // Pass the selected location to template
     return "home";
   }
 

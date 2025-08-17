@@ -48,8 +48,20 @@
                                     </label>
                                     <input type="text" class="form-control" id="homeAddress" name="homeAddress"
                                            th:value="${user.homeAddress}" 
-                                           placeholder="Enter your home address">
-                                    <div class="form-text">This address will be used as the starting point for distance calculations</div>
+                                           placeholder="Enter your home address (e.g., 'Rothschild Blvd 1, Tel Aviv')">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        This address will be converted to coordinates for distance calculations. 
+                                        Please provide a complete address including city.
+                                    </div>
+                                    <div th:if="${user.homeLat != null and user.homeLng != null}" class="form-text text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Address successfully geocoded to coordinates
+                                    </div>
+                                    <div th:if="${user.homeAddress != null and user.homeAddress != '' and (user.homeLat == null or user.homeLng == null)}" class="form-text text-warning">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Address could not be geocoded. Please check the address format.
+                                    </div>
                                 </div>
 
                                 <div class="mb-4">

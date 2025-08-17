@@ -2,6 +2,7 @@ package com.example;
 
 import com.example.model.User;
 import com.example.service.UserService;
+import com.example.service.GeocodingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,9 +15,11 @@ import jakarta.servlet.http.HttpSession;
 public class SettingsController {
 
     private final UserService userService;
+    private final GeocodingService geocodingService;
 
-    public SettingsController(UserService userService) {
+    public SettingsController(UserService userService, GeocodingService geocodingService) {
         this.userService = userService;
+        this.geocodingService = geocodingService;
     }
 
     @GetMapping("/settings")
@@ -52,10 +55,23 @@ public class SettingsController {
         // Parse resident status
         boolean residentStatus = "on".equals(isResident);
 
-        // For now, we'll use default coordinates. In a real app, you'd geocode the
-        // address
-        Double homeLat = 32.0853; // Default Tel Aviv coordinates
-        Double homeLng = 34.7818;
+        // Geocode the address to get coordinates
+        Double homeLat = null;
+        Double homeLng = null;
+        
+        if (homeAddress != null && !homeAddress.trim().isEmpty()) {
+            var coordinates = geocodingService.geocodeAddress(homeAddress);
+            if (coordinates.isPresent()) {
+                homeLat = coordinates.get().getLat();
+                homeLng = coordinates.get().getLng();
+            } else {
+                // If geocoding fails, show an error message
+                model.addAttribute("errorMessage", "Could not find coordinates for the provided address. Please check the address and try again.");
+                model.addAttribute("user", currentUser);
+                model.addAttribute("activeTab", "settings");
+                return "settings";
+            }
+        }
 
         User updatedUser = userService.createOrUpdateUser(
                 userId,

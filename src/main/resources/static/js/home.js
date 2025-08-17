@@ -6,17 +6,25 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded on home page');
     
     const searchBtn = document.getElementById('searchBtn');
-    const searchLocationToggle = document.getElementById('searchLocationToggle');
+    const currentLocationRadio = document.getElementById('currentLocation');
+    const homeAddressRadio = document.getElementById('homeAddress');
     const residentCheckbox = document.getElementById('residentCheckbox');
     const searchHint = document.getElementById('searchHint');
     
     console.log('Search button:', searchBtn);
-    console.log('Search location toggle:', searchLocationToggle);
+    console.log('Current location radio:', currentLocationRadio);
+    console.log('Home address radio:', homeAddressRadio);
     console.log('Resident checkbox:', residentCheckbox);
     
-    // Handle search location toggle
-    if (searchLocationToggle) {
-        searchLocationToggle.addEventListener('change', function() {
+    // Handle location toggle changes
+    if (currentLocationRadio) {
+        currentLocationRadio.addEventListener('change', function() {
+            updateSearchHint();
+        });
+    }
+    
+    if (homeAddressRadio) {
+        homeAddressRadio.addEventListener('change', function() {
             updateSearchHint();
         });
     }
@@ -45,28 +53,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateSearchHint() {
-        if (!searchHint || !searchLocationToggle) return;
+        if (!searchHint) return;
         
-        if (searchLocationToggle.checked) {
-            searchHint.innerHTML = '<i class="bi bi-house-door-fill me-1"></i> Uses your home location';
+        // Check which radio button is selected
+        const useHomeLocation = homeAddressRadio && homeAddressRadio.checked;
+        
+        if (useHomeLocation) {
+            searchHint.innerHTML = '<i class="bi bi-house-door-fill me-1"></i> Uses your home address';
         } else {
-            searchHint.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i> Uses your current location';
+            searchHint.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i> Uses your current location (browser permission required)';
         }
     }
     
     function handleSearch() {
         const isResident = residentCheckbox ? residentCheckbox.checked : false;
-        const useHomeLocation = searchLocationToggle ? searchLocationToggle.checked : false;
-        const radius = document.getElementById('radiusSelect') ? document.getElementById('radiusSelect').value : '1000';
+        const useHomeLocation = homeAddressRadio ? homeAddressRadio.checked : false;
         
-        console.log('Search parameters:', { isResident, useHomeLocation, radius });
+        console.log('Search parameters:', { isResident, useHomeLocation });
         
-        // Build search URL
-        let searchUrl = '/?resident=' + (isResident ? 'true' : 'false') + '&radius=' + radius;
+        // Build search URL with location parameter
+        let searchUrl = '/?resident=' + (isResident ? 'true' : 'false') + '&location=' + (useHomeLocation ? 'home' : 'current');
         
         if (useHomeLocation) {
-            // For home location, we'll need to get the coordinates from the server
-            // For now, just redirect to the home page with resident parameter
+            // For home location, just redirect with the location parameter
             window.location.href = searchUrl;
         } else {
             // For current location, get user's location first
